@@ -1,0 +1,38 @@
+Optional Extension for Large-Scale Enterprise Use
+
+To scale this prototype for environments with many users and devices, they cant go spesific for each remote device thats why the IP-based access control logic can be extended to use a centralized "whitelist" collection in Firestore. This would allow security admins to manage trusted IPs or networks in one place, without embedding them into each user’s policy document.
+
+Firestore Structure
+
+Create a new collection called:
+
+ip_whitelist
+
+Each document in that collection you created can look like this:
+{
+  "network": "10.0.2.0/32",
+  "label": "Office Subnet"
+}
+or for individual remote users who want to work remotely from their houses
+{
+  "network": "80.232.250.236/32",
+  "label": "Remote Access - Efehan"
+}
+
+Adjusted Kotlin Logic
+
+Instead of reading allowedIpRanges from the users policy, fetch the centralized list:
+
+fun getGlobalWhitelist(callback: (List<String>) -> Unit) {
+    firestore.collection("ip_whitelist").get()
+        .addOnSuccessListener { result ->
+            val ranges = result.mapNotNull { it.getString("network") }
+            callback(ranges)
+        }
+}
+
+You can then compare the current IP address against this list the same way i was when i am testing.
+
+
+
+
